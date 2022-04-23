@@ -1,6 +1,6 @@
 {
-	"name": "tailwind-nextjs-starter-blog",
-	"version": "1.5.3",
+	"name": "geony-blog",
+	"version": "1",
 	"scripts": {
 		"start": "next dev",
 		"dev": "next dev",
