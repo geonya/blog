@@ -64,6 +64,9 @@ module.exports = withContentlayer(
     eslint: {
       dirs: ['pages', 'components', 'lib', 'layouts', 'scripts'],
     },
+    images: {
+      domains: ['imagedelivery.net', 'avatars.githubusercontent.com'],
+    },
     async headers() {
       return [
         {
@@ -87,7 +90,6 @@ module.exports = withContentlayer(
           'react-dom': 'preact/compat',
         })
       }
-
       return config
     },
   })
