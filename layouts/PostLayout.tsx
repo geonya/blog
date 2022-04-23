@@ -37,7 +37,6 @@ export default function PostLayout({
 	children,
 }: Props) {
 	const { slug, date, title, tags } = content;
-
 	return (
 		<SectionContainer>
 			<BlogSEO
@@ -115,11 +114,11 @@ export default function PostLayout({
 								</ul>
 							</dd>
 						</dl>
-						<div className="divide-y divide-gray-200 dark:divide-gray-700 xl:col-span-3 xl:row-span-2 xl:pb-0">
+						<div className="xl:col-span-3 xl:row-span-2 xl:pb-0">
 							<div className="prose max-w-none pt-10 pb-8 dark:prose-dark">
 								{children}
 							</div>
-							<div className="pt-6 pb-6 text-sm text-gray-700 dark:text-gray-300">
+							<div className="flex justify-center pt-6 pb-6 text-sm text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 ">
 								<Link href={editUrl(slug)}>{"View on GitHub"}</Link>
 							</div>
 							<Comments />
