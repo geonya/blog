@@ -26,7 +26,7 @@ layout: PostLayout
 
 - [x] InstaClone ~ # 6.15
   - about [like / unlike / seeing feed / comments parts]
-- [ ] CarrotMarket # React Hook Form
+- [x] CarrotMarket # React Hook Form
 - [x] DeepDive JS # 33 Symbol # 34 Iterable
 - [ ] Twitter Clone # CSS
 
@@ -326,3 +326,64 @@ Array.prototype[Symbol.for("sum")] = function () {
 ## 33.7 Well-known Symbol
 
 - 자바스크립트가 기본 제공하는 빌트인 심벌
+
+# NextJS (Carrot Marekt)
+
+- prisma 로 data schema 를 만든다.
+- secure tunnel 을 이용해 planent scale과 db를 안전하게 연결할 수 있는 url을 준다.
+- 해당 url 을 env 파일에 넣어 prisma를 설정해준다.
+- npx prisma db push 를 이용해 planet scale로 보낸다.
+- prisma studio admin panel 를 이용하여 쉽게 db 상태를 체크한다.
+- npx prisma generate 를 이용해 client 를 생성한다.
+- client는 코드를 이용해 database와 소통할 수 있도록 해준다.
+
+```typescript
+import { PrismaClient } from "@prisma/client";
+
+export default new PrismaClient();
+```
+
+- 프론트에서 db를 수정할 수 없도록 client는 api를 통해서만 db와 소통한다.
+- NextJS는 그 자체만으로 api 라우트를 만들 수 있는 프레임워크다
+- api 폴더만 만들기만 하면 바로 api 기능을 이용할 수 있다.
+- 해당 파일에서 export default 하는 function 을 정의하고 req, res 객체를 가지면 된다.
+
+```typescript
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiRequest, NextApiResponse } from "next";
+import client from "../../libs/client";
+type Data = {
+	ok: boolean;
+};
+export default async function handler(
+	req: NextApiRequest,
+	res: NextApiResponse<Data>
+) {
+	await client.user.create({
+		data: {
+			email: "sample@user.com",
+			name: "user",
+		},
+	});
+	res.json({
+		ok: true,
+	});
+}
+```
+
+## 6.7 API Routers
+
+- NextJS 앱안에서 호스팅 중인 API 라우트를 통해 database 에 접근할 수 있음
+- API route는 Next.js 로 API를 빌드하기 위한 솔루션을 제공함
+- pages/api 폴더 내의 모든 파일은 `/api/*` 에 맵핑되며 API endpoint로 처리됨
+- Server-Side 전용 번들이며 Client-Side에 영향을 주지 않음
+  https://nextjs.org/docs/api-routes/introduction
+
+## 7.0 React Hook Form
+
+- React Hook Form Package
+- 사용하기 쉬운 유효성 검사를 통해 성능이 뛰어나고 유연하며 확장 가능한 form
+  https://react-hook-form.com/
+- 현재까지 react hook form 이 react 18과 호환이 안되므로
+- npm i react-hook-form --legacy-peer-deps
+- 위와 같이 설치해야함
