@@ -1,5 +1,5 @@
 ---
-title: 220427
+title: 220427 Today I Learned
 date: "2022-04-27"
 tags:
   [
@@ -22,12 +22,307 @@ images: []
 layout: PostLayout
 ---
 
-# Today I Learned !
+# Today Plan
 
-- [ ] InstaClone # Like & Unlike + Comments
-
-  - like / unlike / seeing feed / comments parts
-
+- [x] InstaClone ~ # 6.15
+  - about [like / unlike / seeing feed / comments parts]
 - [ ] CarrotMarket # React Hook Form
-- [ ] DeepDive JS # 33 Symbol # 34 Iterable
+- [x] DeepDive JS # 33 Symbol # 34 Iterable
 - [ ] Twitter Clone # CSS
+
+# InstaClone
+
+## 6.9 Like Unlike Photos
+
+- Like 모델을 만들어 schema migrate
+- User 모델과 Photo 모델을 연결시킨다.
+
+```GraphQL
+  @@unique[userid, photoId]
+```
+
+> @@unique (두 개 이상의 필드를 동시에 unique로 지정함)
+
+- 지정된 필드에 대한 복합 unique constraint을 정의
+- unique constraint을 구성하는 모든 필드는 필수 필드여야 한다.
+- 좋아요를 누를 때마다 생성되는 Like모델의 photoId와 userId가 모두 동일한 또다른 Like 모델이 생성되지 않도록 한다.
+
+## 6.10 Like UnLike Photos : toggleLike
+
+- 해당 Photo에 Like 여부를 검사하여 없을 경우 생성하고 존재할 경우 기존 Like 를 제거한다.
+- loggedInUser 만 가능하도록 제한한다.
+- 먼저 like가 생성되었는지 확인하기 위해 존재 여부를 findUnique로 검사한다.
+- 존재할 경우 delete / 존재하지 않을 경우 create 함수를 실행한다.
+
+## 6.11 seePhotoLikes
+
+- photos 폴더에 seePhotoLikes 폴더를 만들어 type 와 resolver 를 만든다.
+- query 와 resolver 를 다음과 같이 정의 한다.
+
+```typescript
+// query
+import { gql } from "apollo-server-express";
+
+export default gql`
+	type Query {
+		seePhotoLikes(id: Int!): [User]
+	}
+`;
+
+//resolver
+
+export default {
+	Query: {
+		seePhotoLikes: async (_: any, { id }, { client }) => {
+			const likes = await client.like.findMany({
+				where: {
+					photoId: id,
+				},
+				select: {
+					user: true,
+				},
+			});
+			return likes.map((like: any) => like.user);
+		},
+	},
+};
+```
+
+- user data만 따로 배열화하여 return 한다.
+- 따라서 해당 photo 에 like 를 누른 사람을 모두 조회해볼 수 있다.
+
+## 6.13 Comment
+
+- Comment Model 을 prisma schema 에 migrate 한다.
+- User 와 Photo 모델과 연결시킨다
+- comment 모델에 payload를 정의한다. (contents)
+- comments 폴더를 별도로 만들어 comment type을 정의한다.
+- createComment 폴더를 만들어 type과 resolver를 정의한다.
+- createComment resolver 는 다음과 같이 동작한다.
+  - 인자로 받아온 photoId 로 photo 가 존재하는지 검사한다.
+  - 존재한다면 comment 를 create 한다.
+  ```typescript
+  await client.comment.create({
+  	data: {
+  		payload,
+  		photo: {
+  			connect: {
+  				id: photoId,
+  			},
+  		},
+  		user: {
+  			connect: {
+  				id: loggedInUser.id,
+  			},
+  		},
+  	},
+  });
+  ```
+- payload, photo, user 를 data에 담아 db에 push 한다.
+
+## 6.14 See Photo Comments
+
+- photo type에 comment 갯수를 셀 수 있도록 형식을 Int! 로 정의한다.
+- photo resolver 에 comment count를 추가한다.
+  ```typescript
+  comments: ({ id }) =>
+  	client.comment.count({
+  		where: {
+  			photoId: id,
+  		},
+  	});
+  ```
+- 단순하게 comment 중에서 photoId 가 해당 photo id와 동일한 모든 comment 갯수를 세는 방법이다.
+- Photo 와 User TypeDefinition 에 isMine 과 isMe 검사 코드를 넣는다.
+
+```typescript
+isMine: ({ userId }, __: any, { loggedInUser, client }) =>
+	userId === loggedInUser?.id;
+```
+
+- seePhotoComment 폴더를 만들고 type 과 resolver 를 정의한다.
+- resolver의 원리는 해당 photoId를 가지고 있는 comment를 배열로 return 하는 것이다.
+- 그리고 cursor pagination 을 위해 lastId 를 unrequired로 가져온다
+
+```typescript
+seePhotoComments: (_: any, { id, lastId }, { client }) =>
+	client.comment.findMany({
+		where: {
+			photoId: id,
+		},
+		take: 10,
+		skip: lastId ? 1 : 0,
+		...(lastId && { cursor: { id: lastId } }),
+	});
+```
+
+# DeepDive JS 요약 정리
+
+## Ch.33 Symbol
+
+## 33.1 What is Symbol ?
+
+- 심벌 값은 다른 값과 중복되지 않는 유일무이한 원시 타입의 값이다.
+- 주로 이름의 충돌 위험이 없는 유일한 프로퍼티 키를 만들기 위해 사용한다.
+
+## 33.2 심벌 값의 생성
+
+### Symbol 함수
+
+- 심벌 값은 `Symbol` 함수로만 생성할 수 있다.
+- 생성된 심벌 값은 외부로 노출되지 않아 확인할 수 없으며, 다른 값과 절대 중복되지 않은 유일무이한 값이다.
+
+```js
+const mySymbol = Symbol();
+console.log(typeof mySymbol); // symbol
+
+// 심벌 값은 외부로 노출되지 않아 확인할 수 없다.
+console.log(mySymbol); // Symbol()
+```
+
+- `Symbol` 함수는 `String`, `Number`, `Boolean` 생성자 함수와는 달리 `new` 연산자와 함께 호출하지 않는다.
+- new 연산자와 함께 생성자 함수 또는 클래스를 호출하면 객체(인스턴스)가 생성되지만 심벌 값은 변경 불가능한 원시값이다.
+
+- `string`, `number` 타입으로 암묵적으로 변환되지 않는다.
+- 단, `boolean` 타입으로는 암묵적으로 타입 변환이 가능하다. (if 문 등에서 존재 확인 가능)
+
+### Symbole.for / Symbole.keyFor 메서드
+
+- `Symbol.for` 메서드는 인수로 전달받은 문자열을 키로 사용하여 키와 심벌 값의 쌍들이 저장되어 있는 전역 심벌 레지스트리에서 해당 키와 일치하는 심벌 값을 검색한다.
+  - 검색에 성공하면 새로운 심벌 값을 생성하지 않고 검색된 심벌 값을 반환
+  - 검색에 실패하면 새로운 심벌 값을 생성하여 `Symbol.for` 메서드의 인수로 전달된 키로 전역 심벌 레지스트리에 저장한 후, 생성된 심벌 값을 반환한다.
+
+```js
+const s1 = Symbol.for("mySymbol");
+const s2 = Symbol.for("mySymbol");
+console.log(s1 === s2); // true
+```
+
+- `Symbol` 함수는 호출될 때마다 유일무이한 심벌 값을 생성한다.
+- 자바스크립트 엔진이 관리하는 심벌 값 저장소 : 심벌 레지스트리에서 심벌 값을 검색할 수 있는 키를 지정할 수 없으므로 전역 심벌 레지스트리에서 관리하지 못한다.
+- 하지만 `Symbol.for`를 사용하면 애플리케이션 전역에서 중복되지 않는 유일무이한 상수인 심벌 값을 단 하나만 생성하여 전역 심벌 레지스트리를 통해 공유할 수 있다.
+
+- `Symbol.keyFor` 메서드를 사용하면 전역 심벌 레지스트리에 저장된 심벌 값의 키를 추출할 수 있다.
+
+```js
+// 전역 심벌 레지스트리에 mySymbol 이라는 키로 저장된 심벌 값이 없으면 새로운 심벌 값을 생성한다.
+const s1 = Symbol.for("mySymbol");
+
+// 전역 심벌 레지스트리에 저장된 심벌 값의 키를 추출
+Symbol.keyFor(s1);
+
+// Symbol 함수를 호출하여 생성한 심벌 값은 전역 심벌 레지스트리에 등록되어 관리되지 않는다.
+const s2 = Symbol("foo");
+
+// 전역 심벌 레지스트리에 저장된 심벌 값의 키를 추출
+Symbol.keyFor(s2); // undefined
+```
+
+## 33.3 심벌과 상수
+
+```js
+const Direction = {
+	UP: 1,
+	DOWN: 2,
+	LEFT: 3,
+	RIGHT: 4,
+};
+
+// 변수에 상수를 할당
+const myDirection = Direction.UP;
+
+if (myDirection === Direction.UP) {
+	console.log("You are going up");
+}
+```
+
+- 위 예제와 같이 값에는 특별한 의미가 없고 상수 이름 자체에 의미가 있는 경우가 있다.
+- 이때 문제는 상수 값 1,2,3,4가 변경될 수 있으며, 다른 변수 값과 중복될 수도 있다는 것이다.
+- 이러한 경우 변경/중복될 가능성이 있는 무의미한 상수 대신 중복될 가능성이 없는 유일무이한 심벌 값을 사용할 수 있다
+
+```js
+const Direction = {
+	UP: Symbol("up"),
+	DOWN: Symbol("down"),
+	LEFT: Symbol("left"),
+	RIGHT: Symbol("right"),
+};
+
+const myDirection = Direction.UP;
+
+if (myDirection === Direction.UP) {
+	console.log("You are going up");
+}
+```
+
+> enum
+> `enum`은 명명된 상수의 집합으로 열거형이라고 부른다.
+> 자바스크립트에서는 `enum을` 지원하지 않아 사용하려면 다음과 같이 객체의 변경을 방지하기 위해 객체를 동결하는 Object.freeze메서드와 심벌 값을 사용한다.
+
+```js
+const Direction = Object.freeze({
+	UP: Symbol("up"),
+	DOWN: Symbol("down"),
+	LEFT: Symbol("left"),
+	RIGHT: Symbol("right"),
+});
+```
+
+## 33.4 심벌과 프로퍼티 키
+
+- 객체의 프로퍼티 키는 빈 문자열을 포함하여 모든 문자열 또는 심벌 값으로 만들 수 있으며
+- 동적으로 생성할 수도 있다.
+- 심벌 값으로 프로퍼티 키를 동적 생성하여 프로퍼티를 만들 수 있다.
+
+```js
+const obj = {
+	[Symbol.for("mySymbol")]: 1,
+};
+
+obj[Symbol.for("mySymbol")]; // 1
+```
+
+- 심벌 값은 유일무이한 값이므로 심벌 값으로 프로퍼티 키를 만들면 다른 프로퍼티 키와 절대 충돌하지 않는다.
+
+## 33.5 심벌과 프로퍼티 은닉
+
+- 심벌 값을 프로퍼티 키로 사용하여 생성한 프로퍼티는 `for ... in` 문이나 `Object.keys`, `Object.getOwnPropertyNames` 메서드로 찾을 수 없다.
+- 이처럼 심벌 값을 프로퍼티 키로 사용하여 프로퍼티를 생성하면 외부에 노출할 필요가 없는 프로퍼티를 은닉할 수 있다
+
+```js
+const obj = {
+	[Symbol("mySymbol")]: 1,
+};
+
+for (const key in obj) {
+	console.log(key); // 아무것도 출력되지 않음
+}
+
+console.log(Object.keys(obj)); //[]
+console.log(Object.getOwnPropertyNames(obj)); // []
+```
+
+- 하지만 `Object.getOwnPropertySymbols` 메서드를 이용하면 심벌 값을 프로퍼티 키로 사용하여 생성한 프로퍼티를 찾을 수 있다.
+
+```js
+Object.getOwnPropertySymbols(obj)[0];
+//Symbol(mySymbol)
+const symbolKey1 = Object.getOwnPropertySymbols(obj)[0];
+obj[symbolKey1]; // 1
+```
+
+## 33.6 심벌과 표준 빌트인 객체 확장
+
+- 중복된 가능성이 전혀 없는 심벌 값으로 프로퍼티 키를 생성하여 표준 빌트인 객체를 확장하면 표준 빌트인 객체의 기존 프로퍼티 키와 충돌하지 않는 것은 물론,
+- 표준 사양의 버전이 올라감에 따라 추가될지 모르는 어떤 프로퍼티 키와도 충돌할 위험이 없어 안전하게 표준 빌트인 객체를 확장할 수 있다.
+
+```js
+Array.prototype[Symbol.for("sum")] = function () {
+	return this.reduce((acc, cur) => acc + cur, 0);
+};
+[1, 2][Symbol.for("sum")](); // 3
+```
+
+## 33.7 Well-known Symbol
+
+- 자바스크립트가 기본 제공하는 빌트인 심벌
