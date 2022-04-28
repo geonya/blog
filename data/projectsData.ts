@@ -17,6 +17,12 @@ const projectsData = [
 		imgSrc: "/static/images/crabmarket.png",
 		href: "https://crab-market.vercel.app/",
 	},
+	{
+		title: "Twitter Clone : Hitter",
+		description: `ReactJS, Firebase`,
+		imgSrc: "/static/images/hitter.png",
+		href: "https://geonya.github.io/react-hitter/",
+	},
 ];
 
 export default projectsData;
