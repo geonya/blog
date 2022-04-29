@@ -16,7 +16,7 @@ export default function Projects() {
 						Projects
 					</h1>
 					<p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-						These are the little projects I'm working on!
+						The little projects I'm working on!
 					</p>
 				</div>
 				<div className="container py-12">
