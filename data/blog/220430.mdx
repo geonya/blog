@@ -23,7 +23,7 @@ layout: PostLayout
 
 - [ ] Deepdive JS # 36 디스트럭처링 할당
 - [x] NextJS Study - ReactDOM Hydrate
-- [ ] GraphQL Study
+- [x] GraphQL Study
 - [ ] React Hook Form Study
 - [ ] Instaclone # 7 Backend Finish
 
@@ -133,9 +133,132 @@ https://www.freecodecamp.org/news/so-whats-this-graphql-thing-i-keep-hearing-abo
 - Instead of having multiple "dumb" endpoints, havs a signle "smart endpoint" that can take in complex queries, and then massage the data output into whatever shape the client requires.
 - The GraphQL layer lives between the client and one or more data sources, receiving client requests and fetching the necessary data according to your instructions.
 
-<div className="flex flex-wrap justify-center -mx-2 overflow-hidden xl:-mx-2">
-  <div className="my-1 px-2 w-full overflow-hidden xl:my-1 xl:px-2 xl:w-1/2">
-    ![Maple](/static/images/canada/maple.jpg)
-  </div>
-
+<div className="-mx-2 flex flex-wrap justify-center overflow-hidden">
+	<div className="my-1 w-full overflow-hidden xl:w-[500px]">
+		![graphql](/static/images/graphql.png)
+	</div>
 </div>
+
+- GraphQL on the other hand is like having a personal assistant.
+- Once you've given them the address to all three places, you can simply ask for what you want like
+- (get me my dry cleaning,a large pizza, and two dozen eggs) and wait for them to return.
+
+- GraphQL API is organized around three main building blocks:
+
+1. Schema
+2. Queries
+3. Resolvers
+
+### Queries
+
+- The request you make to your GraphQL personal assistant is the query,
+
+```graphql
+query {
+	stuff
+}
+```
+
+- We're delcaring a new query using `query` keyword, then asking for a field named `stuff`.
+- The great thing about GraphQL queries is that they support nested fields, so we can go one level deeper:
+
+```GraphQL
+query {
+  stuff {
+    eggs
+    shirt
+    pizza
+  }
+}
+```
+
+- As you can see, the client making the query doesn't need to care which "shop" the data is coming from.
+- Just ask for what you need, and let the GraphQL server take care of the rest.
+
+- It's worth nothing that query fields can also point to arrays.
+
+```graphql
+query {
+	posts {
+		# this is an array
+		title
+		body
+		author {
+			# we can go deeper!
+			name
+			avatarUrl
+			profileUrl
+		}
+	}
+}
+```
+
+- Query fields also support arguments. If I want to display a specific post, I can add an `id` argument to the `post` field:
+
+```graphql
+query {
+	post(id: "123foo") {
+		title
+		body
+		author {
+			name
+			avatarUrl
+			profileUrl
+		}
+	}
+}
+```
+
+- Finally, if I want to make that `id` argument dynamic, I can define a variable and then reuse it inside the query.
+
+```graphql
+query getMyPost($id: String) {
+	post(id: $id) {
+		title
+		body
+		author {
+			name
+			avatarUrl
+			profileUrl
+		}
+	}
+}
+```
+
+## Resolvers
+
+- GraphQL server won't know what to do with an incoming query unless you tell it using a resolver.
+
+- A resolver tells GraphQL how and where to fetch the data corresponding to a given field.
+
+```graphql
+Query: {  post(root, args) { return Posts.find({ id: args.id });  }}
+```
+
+- We're putting the resolver on `Query` because we want to query for `post` directily at the root level.
+- But you can also have resolvers for sub-fields, such as a `post`'s `author` field:
+
+```graphql
+Query: {
+  post(root, args)
+  {
+    return Posts.find({ id: args.id });  }},
+    Post: {  author(post)
+    {
+      return Users.find({ id: post.authorId})
+      }
+}
+```
+
+- Note That your resolvers are not limited to returning database Documents.
+- For example, maybe you want to add a `commentsCount` to your `Post` type.
+
+```graphql
+Post: {  author(post) {    return Users.find({ id: post.authorId})  },  commentsCount(post) {    return Comments.find({ postId: post.id}).count()   }}
+```
+
+- **Your API schema and your database schemas are decoupled.**
+- We can also make resolves modify the contents of your database.
+- in which case they're known as mutation resolver.
+
+## Schema
