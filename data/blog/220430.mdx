@@ -133,24 +133,7 @@ https://www.freecodecamp.org/news/so-whats-this-graphql-thing-i-keep-hearing-abo
 - Instead of having multiple "dumb" endpoints, havs a signle "smart endpoint" that can take in complex queries, and then massage the data output into whatever shape the client requires.
 - The GraphQL layer lives between the client and one or more data sources, receiving client requests and fetching the necessary data according to your instructions.
 
-<div className="-mx-2 flex flex-wrap overflow-hidden xl:-mx-2">
-	<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
-		![Maple](/static/images/canada/maple.jpg)
-	</div>
-	<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
-		![Lake](/static/images/canada/lake.jpg)
-	</div>
-	<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
-		![Mountains](/static/images/canada/mountains.jpg)
-	</div>
-	<div className="my-1 w-full overflow-hidden px-2 xl:my-1 xl:w-1/2 xl:px-2">
-		![Toronto](/static/images/canada/toronto.jpg)
-	</div>
-</div>
+import Image from "next/image";
+<Image alt="ocean" src="/static/images/ocean.jpg" width={256} height={128} />;
 
-<img
-	src="/static/images/canada/toronto.jpg"
-	width="50px"
-	height="50px"
-	alt="toronto"
-/>
+# Why should I import Image ....
