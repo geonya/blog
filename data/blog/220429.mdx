@@ -489,10 +489,14 @@ const message = await client.message.findFirst({
 
 ```js
 useEffect(() => {
-	watch(() => clearErrors());
-}, [watch, clearErrors]);
+	if (errors) {
+		const watching = watch(() => clearErrors());
+		return () => watching.unsubscribe();
+	}
+}, [errors, watch, clearErrors]);
 ```
 
+- 만약 error 가 존재한다면 ? (formState.erros)
 - watch는 input 의 변화를 감지하여 작동한다.
 - watch가 동작할 때마다 콜백 함수로 clearErrors를 동작시켜 존재하는 에러를 초기화시킨다.
 - 여기에서 조건문으로 error 가 존재할 때만 clearErrors 를 작동시키는게 더 효율적일 것 같다.
