@@ -5,7 +5,7 @@ const siteMetadata = {
 	description: "Learning & Building",
 	language: "en-us",
 	theme: "system", // system, dark or light
-	siteUrl: "https://blog-geonya.vercel.app/",
+	siteUrl: "https://blog-geonya.vercel.app",
 	siteRepo: "https://github.com/geonya/blog",
 	siteLogo: "/static/images/logo.png",
 	image: "/static/images/avatar.png",
