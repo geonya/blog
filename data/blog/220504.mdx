@@ -12,7 +12,6 @@ tags:
     "aplloserver",
     "instaclone",
     "reactjs",
-    "english",
   ]
 draft: false
 summary: Javascript, GraphQL, Aplloserver, Prisma, English
@@ -26,10 +25,7 @@ layout: PostLayout
 
 - [x] DeepDiver Js # 38 브라우저의 렌더링 과정
 - [x] InstaClone Front part 1 ~ # 8.8
-- [ ] Side Project : 'ToDoPod App'
-- [ ] 혼자 공부하는 시간의 힘 읽기 ()
-- [ ] DECOUPLING 읽기 ()
-- [ ] SPEAK ENGLISH 200 sentences
+- [x] Side Project : 'ToDoPod App'
 
 <br />
 
@@ -166,7 +162,7 @@ https://ko.wikipedia.org/wiki/%EB%B8%8C%EB%9D%BC%EC%9A%B0%EC%A0%80_%EC%97%94%EC%
 
 - app init with cra typescript
   - npx create-react-app instaclone-web --template typescript
-- pkg install
+- npm install
   - react-router-dom
   - react-helmet-async
   - react-hook-form
@@ -184,10 +180,11 @@ https://ko.wikipedia.org/wiki/%EB%B8%8C%EB%9D%BC%EC%9A%B0%EC%A0%80_%EC%97%94%EC%
 - [x] Router
 - [x] Authentication : Apollo Reactive Variables
 - [x] Architecture
-- [ ] Styles System : styled-components
+- [x] Styles System : styled-components
 
 ### Router
 
+- _react-router-dom V6 로 진행_
 - 특정 URL로 가면 해당 Components 를 보여줌
 - Browser Router
 - Routes 는 한 번에 하나의 Route만 render 시켜줌 (기본적으로 react-router-dom 은 pattern matching 방식이기 때문에 url pattern 이 맞는 모든 Route들을 render 함)
@@ -259,4 +256,52 @@ declare module "styled-components" {
 
 <br />
 
-# Project 1 : ToDoPod
+# Project : 'ToDoPod'
+
+- github : https://github.com/geonya/todopod-back/commit/de52c8ec2998ade5887d878357159ace3acd3229
+
+- project / todo / hashtag / photo schema 에 CRUD 기능을 구현하기 위해 `type definition` 과 `resolver` 들을 만듦
+- photo 와 avatar image file이 AWS S3 에서 edit 이나 delete 할 경우 기존 file 이 삭제 되도록 함
+- 각 model 을 지정할 경우 연결된 model 들을 같이 볼 수 있도록 resolver 파일을 수정함
+- project에서 prisma where contains ? 를 이용해 search 기능을 구현함
+- [ ] comment 기능을 어떻게 구현할지 고민 중
+- [ ] front UI layout 구상해야함- [ ] Search ToDos
+
+## Project :
+
+- [x] Create Project _220503_
+  - [x] connect or create Client _220503_
+- [x] Edit Project _220503_
+- [x] Delete Project _220503_
+- [x] See Project _220503_
+- [x] Search Projects _220504_
+  - [x] using contains
+  - [ ] `previewFeatures = ["fullTextSearch"]` ?
+
+## ToDo :
+
+- [x] Create toDo _220503_
+- [x] Edit toDo _220503_
+- [x] Delete toDo _220504_
+- [x] See ToDos _220504_
+- [x] See ToDo _220504_
+- [ ] Search ToDos
+
+## Hashtag
+
+- [x] Create hashtag
+  - [x] makeHashtags utility function _220504_
+  - [x] project description _220504_
+  - [x] todo work _220504_
+  - [x] photo caption _220504_
+- [x] See hashtag _220504_
+- [x] See hashtags _220504_
+- [ ] hashtag data(projects, todos, photos) pagination ?
+
+## Photo :
+
+- [x] Upload Photo to AWS S3 _220504_
+- [x] See Photo _220504_
+- [x] Edit Photo _220504_
+- [x] Delete Photo & AWS S3 cascade delete (avatars, photos) _220504_
+      https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#deleteObject-property
