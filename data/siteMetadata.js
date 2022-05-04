@@ -1,10 +1,10 @@
 const siteMetadata = {
 	title: "Geony's Blog",
 	author: "Geony",
-	headerTitle: "Geony's Blog Main",
+	headerTitle: "Geony's Blog",
 	description: "Learning & Building",
 	language: "en-us",
-	theme: "system", // system, dark or light
+	theme: "dark", // system, dark or light
 	siteUrl: "https://blog-geonya.vercel.app",
 	siteRepo: "https://github.com/geonya/blog",
 	siteLogo: "/static/images/logo.png",
