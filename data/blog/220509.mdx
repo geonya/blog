@@ -141,8 +141,6 @@ const state = location.state as IState;
   <ThemeProvider theme="{isDarkMode" ? darkTheme : lightTheme}></ThemeProvider>
   ```
 
-````
-
 - authLayout 에서 Footer 에 버튼을 만들어 onClick event 로 apollo.ts 에 선언해놓은 enable / disalbeDarkMode function 실행하기
 - styles.ts 에서 theme 객체들 다시 확인
 - sharedStyled.ts 에서 BaseBox 컴포넌터의 background-color 를 theme의 bgColor로 재설정
@@ -221,4 +219,5 @@ export const isLoggedInVar = makeVar(Boolean(localStorage.getItem(TOKEN)));
   3. 가치에 대한 대가 부과 활동을 줄이는 것
 - 기술은 일부 사례에서 이 세 가지 전략을 가능하게 하는 방법 중 하나로 쓰일 뿐이다.
 - 진화하는 시장의 본질, 변화하는 고객의 욕구를 명확하게 아는 것만이 파괴의 시대에서 생존하는 유일한 방법임
-````
+
+<br />
