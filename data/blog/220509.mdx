@@ -86,24 +86,29 @@ layout: PostLayout
 - login page 와 마찬가지로 input 들과 useForm 을 register 로 연결시킨다.
 - required 나 minLength / maxLength 등의 validation 을 설정한다.
 - useForm 의 formState 에서 errors 를 호출해 input 에서 발생하는 error 를 미리 만들어둔 error component 로 전달한다.
-- useCreateAccountMutation 을 만들어 createAccount mutation 을 가져온다. (codegen으로 만든 맞춤 mutation 을 import (npm run codegen))
+- `useCreateAccountMutation` 을 만들어 createAccount mutation 을 가져온다. (codegen으로 만든 맞춤 mutation 을 import (npm run codegen))
 - SubmitButton 컴포넌트에 loading 중 문구를 표시하고 validation 을 해준다
-- useCreateAccountMutation 에서 onComplete 옵션을 사용하여 createAccount 의 호출 결과를 받아온다.
-- createAccount 결과 (ok / error) 에서 ok 가 false 일 경우 error 를 받아 setError(“result”, {message:error!”}) 시켜주고
-- 각 input 에서 onChange 옵션으로 clearErrors(“result”)를 해준다. (submit 에러가 발생 이후 해당 error 를 지우지 못하는 상태를 방지함 - input 에 onChange event 발생시 자동으로 에러 삭제)
+- `useCreateAccountMutation` 에서 onComplete 옵션을 사용하여 createAccount 의 호출 결과를 받아온다.
+- createAccount 결과 (ok / error) 에서 ok 가 false 일 경우 error 를 받아 `setError(“result”, {message:error!”})` 시켜주고
+- 각 input 에서 `onChange` 옵션으로 `clearErrors(“result”)`를 해준다. (submit 에러가 발생 이후 해당 error 를 지우지 못하는 상태를 방지함)
+  - input 에 onChange event 발생시 자동으로 에러 삭제
 - Email regular expression validation pattern : /^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])_@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])\_.[a-zA-Z]{2,3}$/i,
 - firstName 과 lastName 의 regular expression validate 에서 [a-zA-Z] 로 대문자도 허용해줌
-- useNavigate 를 이용하여 createAccount mutation 이 error 없이 complete 된 경우 ‘home’ url 로 이동시킴 (다만 login이 되기 이전이기 때문에 router 검사에서 걸려 login page로 이동하게 됨)
-- useNavigate 의 state 옵션을 이용해 signup page 에서 생성한 data 들을 전달할 수 있음
-- 전달한 data는 login page 에서 useLocation 을 이용해 받아올 수 있음
-- const location = useLocation(); const state:{username} = location;
+- `useNavigate` 를 이용하여 createAccount mutation 이 error 없이 complete 된 경우 ‘home’ url 로 이동시킴 (다만 login이 되기 이전이기 때문에 router 검사에서 걸려 login page로 이동하게 됨)
+- `useNavigate` 의 state 옵션을 이용해 signup page 에서 생성한 data 들을 전달할 수 있음
+- 전달한 data는 login page 에서 `useLocation` 을 이용해 받아올 수 있음
+
+```js
+const location = useLocation();
+const state:{username} = location;
+```
 
 ### 10.13 Redirecting Users
 
-- signUp.tsx -> useCreateAccountMutation -> option : onCompleted : -> navigate(routes.home, {state:{signUpState})
+- signUp.tsx -> `useCreateAccountMutation` -> `option : onCompleted : -> navigate(routes.home, {state:{signUpState})`
   회원 가입이 완료되면 home url 로 location 시키고 state에 각종 정보를 담아 보내는데 type 문제가 있어 state를 이렇게 따로 정의해서 보내줘야 한다.
 - Login page 에서 useLocation 을 이용해 state를 받는다.
-- useLocation 의 type 정의 문제
+- `useLocation` 의 type 정의 문제
 
 ```js
 const location = useLocation<ILocationState>();
@@ -112,7 +117,7 @@ const state = location.state as IState;
 ```
 
 - 으로 사용해야 타입 체크가 가능하다.
-- 이유는 ? react-router-dom 이 v6 로 업데이트하면서 useHistory 에서 useNavigate 으로 변경되고 type 정의가 변경되었기 때문인듯 ?
+- 이유는 ? react-router-dom 이 v6 로 업데이트하면서 `useHistory` 에서 `useNavigate` 으로 변경되고 type 정의가 변경되었기 때문인듯 ?
 - Notification 컴포넌트를 만들어 받아온 state 에 message 를 화면에 출력한다.
 - useForm 의 defaultValues option 을 이용해 state에서 받아온 username 와 password를 input 에 기본값으로 넣을 수 있음
 
@@ -120,13 +125,12 @@ const state = location.state as IState;
 
 - apollo.ts -> darkmode function 만들기
 
-  - dark mode 실행시 localStorage 에 darkmode:enabled 로 setItem
-  - light mode 실행시 localStorage 에 darkmode key 를 찾아 removeItem
-  - export const darkModeVar = makeVar(
-    	Boolean(localStorage.getItem(DARK_MODE))
-    );
+  - dark mode 실행시 `localStorage` 에 darkmode:enabled 로 setItem
+  - light mode 실행시 `localStorage` 에 darkmode key 를 찾아 removeItem
 
-    ;
+  ```js
+  export const darkModeVar = makeVar(Boolean(localStorage.getItem(DARK_MODE)));
+  ```
 
 - darkModeVar 의 기본값은 localStorage의 DARK_MODE 존재 여부임
 
@@ -137,9 +141,11 @@ const state = location.state as IState;
   <ThemeProvider theme="{isDarkMode" ? darkTheme : lightTheme}></ThemeProvider>
   ```
 
-  - authLayout 에서 Footer 에 버튼을 만들어 onClick event 로 apollo.ts 에 선언해놓은 enable / disalbeDarkMode function 실행하기
-  - styles.ts 에서 theme 객체들 다시 확인
-  - sharedStyled.ts 에서 BaseBox 컴포넌터의 background-color 를 theme의 bgColor로 재설정
+````
+
+- authLayout 에서 Footer 에 버튼을 만들어 onClick event 로 apollo.ts 에 선언해놓은 enable / disalbeDarkMode function 실행하기
+- styles.ts 에서 theme 객체들 다시 확인
+- sharedStyled.ts 에서 BaseBox 컴포넌터의 background-color 를 theme의 bgColor로 재설정
 
 - 번외 : `apollo.ts`
 
@@ -215,3 +221,4 @@ export const isLoggedInVar = makeVar(Boolean(localStorage.getItem(TOKEN)));
   3. 가치에 대한 대가 부과 활동을 줄이는 것
 - 기술은 일부 사례에서 이 세 가지 전략을 가능하게 하는 방법 중 하나로 쓰일 뿐이다.
 - 진화하는 시장의 본질, 변화하는 고객의 욕구를 명확하게 아는 것만이 파괴의 시대에서 생존하는 유일한 방법임
+````
