@@ -1,0 +1,236 @@
+---
+title: 220512 Today I Learned
+date: "2022-05-12"
+tags:
+  [
+    "daily",
+    "study",
+    "javascript",
+    "apollo",
+    "graphql",
+    "nomadcoders",
+    "speak",
+    "figma",
+  ]
+draft: false
+summary:
+images: []
+layout: PostLayout
+---
+
+<br />
+
+# Today Plan
+
+- [x] Figma 만져보기
+- [x] DeepDive JS # 41
+- [x] 인스타클론 Ch.11.6 ~
+- [x] Speak 100 문장
+- [ ] HBR Review Ch.1.2
+- [ ] WSJ Speaking Ch.1.1
+- [ ] ‘디커플링’ 읽기
+
+<br />
+
+# InstaClone
+
+## Ch.11.7 Liking Photos
+
+- Photo component type check 때문에 조금 애를 먹었는데 수동으로 정의해주는 것으로 해결했다.
+- `{…photo!} ` 이런식으로 전체 prop을 spread 문법으로 날리는 것에 대해서 익숙해져야겠다. (느낌표로 확실히 존재할 것이라 표시를 안해주면 에러난다)
+- `useToggleLikeMutation` 을 만들어서 PhotoAction Component에 Click Event Handler 로 등록했다.
+- `onClick={()=>toggleLikeMutation()}` onClick EventHandler 등록시에 익명 화살표 함수로 만들어야 type error 가 발생하지 않는다.
+- 댓글 참고 : `onClick` 함수와 `toggleLikeMutation` 함수의 파라미터 타입이 일치하지 않기 때문인 것 같습니다.. 따라서 타입스크립트로 작성시, 이런 충돌을 막기 위해 onClick에 toggleLikeMutation을 바로 할당하지 않고 `() => …`과 같이 익명의 콜백 함수 안에 넣어주면 익명함수의 파라미터는 비어있어 타입검사를 통과할 수 있게 되는 것 같습니다. 그리고 콜백 안의 함수는 호출되어야만 하므로 `{() => toggleLikeMutation()}` 로 써야 작동하게 되는 것
+
+## Ch.11.8 Refetching Queries
+
+- updating Apollo Cache
+- cache를 update 하는 다양한 방법들
+
+```tsx
+refetchQueries: [{ query: SeeFeedDocument }], // 전체 query를 refetching 하기 때문에 작은 query 에 알맞음
+```
+
+- update는 백엔드에서 받은 데이터를 주고 apollo cache에 직접 link 해주는 function 이다.
+
+```
+update 함수
+Mutation response이 캐시의 수정된 모든 필드(예: 특정 목록 필드)를 업데이트하기에 충분하지 않은 경우 update 함수를 정의하여 Mutation 후 캐시된 데이터에 수동 변경 사항을 적용할 수 있습니다.
+cache.writeQuery, cache.writeFragment 또는 cache.modify로 캐시를 업데이트할 수 있습니다.
+https://www.apollographql.com/docs/react/data/mutations/#the-update-function
+
+readQuery / writeQuery / updateQuery
+원격 및 로컬 데이터를 모두 관리하기 위해 표준 GraphQL 쿼리를 사용합니다.
+
+readFragment / writeFragment / updateFragment
+해당 객체에 도달하기 위해 전체 쿼리를 작성하지 않고 캐시된 객체의 필드에 액세스합니다.
+
+cache.modify
+GraphQL을 전혀 사용하지 않고 캐시된 데이터를 조작합니다.
+https://www.apollographql.com/docs/react/caching/cache-interaction/
+```
+
+```tsx
+const [toggleLikeMutation, { loading }] = useToggleLikeMutation({
+	variables: {
+		id,
+	},
+	update(cache, { data }) {
+		cache.modify({
+			id: `Photo:${id}`,
+			fields: {
+				isLiked(prev) {
+					return !prev;
+				},
+				likes(prev) {
+					return isLiked ? prev - 1 : prev + 1;
+				},
+			},
+		});
+	},
+});
+```
+
+- 이렇게 심플하게 정리할 수 있었다.
+- 정의해둔 필드에 연결된 컴포넌트들은 update 가 동작하면 즉각적으로 rendering 된다
+
+## Ch.11.11 Comments 1
+
+- Photo type 에 comments와 CommentsCount 를 정의한다.
+- 이를 위해 백엔드에 Photo resolver를 수정할 필요가 있다.
+- 백엔드 Comment resolver 에서 user data를 불러올 수 있도록 수정한다. or
+- 백엔드 Photo resolvers 에서 comments 를 가져올 때 user 가 include 된 상태로 가져오도록 만든다.
+- Comments Count 를 페인팅할 수 있도록 컴포넌트를 만든다.
+- `` tsx {commentsCount === 1 ? "1 comment" : `${commentsCount} comments`}  ``
+- 간단한 조건을 걸어 숫자가 단수 복수임에 따라 comment / comments 로 표시되도록 한다.
+- 변경한 seeFeed Query 를 codegen 해준다.
+- IComment의 createdAt 까지 prop type을 다시 정의해준다.
+
+## Ch.11.12 Parsing Hashtags
+
+- npm i sanitize-html
+
+```tsx
+dangerouslySetInnerHTML={{ __html: sanitizeHtml( payload?.replace(/#[ㄱ-ㅎ|ㅏ-ㅣ|가-힣|\w-]+/g, "<mark>$&</mark>") || “”, { allowedTags: ["mark"], } ), }}
+```
+
+- replace() 메서드는 어떤 패턴에 일치하는 일부 또는 모든 부분을 새로운 문자열로 교체해서 반환합니다.
+- $&: 매칭된 문자열을 찾아서 삽입합니다.
+- dangerouslySetInnerHTML 는 html 태그를 리액트 컴포넌트에서 사용할 수 있도록 해준다 (원래는 막혀 있음)
+- 하지만 유저가 허용되지 않은 태그를 넣어 페이지를 해킹할 수 있으므로
+- sanitizeHtml 패키지를 이용하여 사용할 수 있는 태그에 제한을 둔다.
+- sanitizeHtml에서 허용하지 않은 태그는 삭제된다.
+- 마지막에 \\ “” 를 하지 않을 경우 null 값을 허용하지 않는 snitizeHtml 로 인해 타입 에러가 발생
+
+<br />
+
+# DeepDive JS Ch.42 비동기 프로그래밍 asynchronous programming
+
+## 동기 처리와 비동기 처리
+
+- 함수가 실행되려면 함수 코드 평가 과정에서 생성된 함수 실행 컨텍스트가 실행 컨텍스트 스택에 푸시 되어야 한다.
+- 함수 코드의 실행이 종료하면 함수 실행 컨텍스트는 실행 컨텍스트 스택에서 팝되어 제거된다.
+- 함수가 호출된 순서대로 순차적으로 실행되는 이유는 함수가 호출된 순서대로 함수 실행 컨텍스트가 실행 컨텍스트 스택에 푸시되기 때문이다.
+- 함수의 실행 순서는 실행 컨텍스트 스택으로 관리한다.
+- 자바스크립트 엔진은 단 하나의 실행 컨텍스트 스택을 갖는다.
+- 이는 함수를 실행할 수 있는 창구가 단 하나이며, 동시에 2개 이상의 함수를 동시에 실행할 수 없다는 것을 의미
+- 실행 컨텍스트 스택의 최상위 요소인 "실행 중인 실행 컨텍스트"를 제외한 모든 실행 컨텍스트는 모두 실행 대기 중인 태스크 Task 들이다.
+- 대기 중인 태스크들은 현지 실행 중인 실행 컨텍스트가 팝되어 실행 컨텍스트 스택에서 제거되면, 다시 말해 현재 실행 중인 함수가 종료하면 비로소 실행되기 시작
+- 싱글 스레드 방식은 한 번에 하나의 태스크만 실행할 수 있기 때문에 처리에 시간이 걸리는 태스크를 실행하는 경우 블로킹(작업중단)이 발생한다.
+- 현재 실행 중인 태스크가 종료할 때까지 다음에 실행될 태스크가 대기하는 방식을 동기 synchronous 처리라고 한다.
+- 현재 실행 중인 태스크가 종료되지 않은 상태라 해도 다음 태스크를 곧바로 실행하는 방식을 비동기 asynchronous 처리라고 한다.
+
+- 동기처리 방식은 태스크를 순서대로 하나씩 처리하므로 실행 순서가 보장되는 장점
+- 태스크가 종료할 때까지 이후 태스크들이 블로킹되는 단점
+
+- 비동기처리 방식은 현재 실행 중인 태스크가 종료되지 않은 상태라 해도 다음 태스크를 곧바로 실행하므로 블로킹이 발생하지 않는 장점
+- 태스크의 실행 순서가 보장되지 않는 단점
+
+- setTimeout, setInterval, HTTP 요청, 이벤트 핸들러는 비동기 처리 방식으로 동작
+- 비동기 처리는 이벤트 루프와 태스크 큐와 깊은 관계가 있다.
+
+## 42.2 이벤트 루프와 태스크 큐
+
+- 자바스크립트의 동시성을 지원하는 것이 바로 이벤트 루프다.
+
+### 콜 스택 call stack
+
+- 실행 컨텍스트가 추가되고 제거되는 스택 자료구조인 실행 컨텍스트 스택이 바로 콜스택이다.
+- 자바스크립트 엔진은 단 하나의 콜 스택을 사용하기 때문에 최상위 실행 컨텍스트(실행 중인 실행 컨텍스트)가 종료되어 콜 스택에서 제거되기 전까지는 다른 어떤 태스크도 실행하지 않음
+
+### 힙 heap
+
+- 힙은 객체가 저장되는 메모리 공간
+- 콜 스택의 요소인 실행 컨텍스트는 힙에 저장된 객체를 참조
+
+- 콜 스택과 힙으로 구성되어 있는 자바스크립트 엔진은 단순히 태스크가 요청되면 콜 스택을 통해 요청된 작업을 순차적으로 실행할 뿐이다.
+- **비동기 처리에서 소스코드의 평가와 실행을 제외한 모든 처리는 자바스크립트 엔진을 구동하는 환경인 브라우저 또는 Node.js가 담당한다**
+
+### 태스크 큐
+
+- setTimeout이나 setInterval 과 같은 비동기 함수의 콜백 함수 또는 이벤트 핸들러가 일시적으로 보관되는 영역
+- 태스크큐와는 별도로 프로미스의 후속 처리 메서드의 콜백 함수가 일시적으로 보관되는 마이크로태스크 큐도 존재한다.
+
+### 이벤트 루프
+
+- 이벤트 루프는 콜 스택에 현재 실행 중인 실행 컨텍스트가 있는지, 그리고 태스크 큐에 대기 중인 함수(콜백 함수, 이벤트 핸들러 등)가 있는지 반복해서 확인한다.
+- 만약 콜 스택이 비어 있고 태스크 큐에 대기 중인 함수가 있다면 이벤트 루프는 순차적으로 태스크 큐에 대기 중인 함수를 콜 스택으로 이동시킨다.
+- 이때 콜 스택으로 이동한 함수는 실행된다. 즉, 태스크 큐에 임시 보관된 함수들은 비동기 처리 방식으로 동작한다.
+
+- 브라우저 환경에서 작동 예제
+
+```js
+function foo() {
+	console.log("foo");
+}
+function bar() {
+	console.log("bar");
+}
+
+setTimeout(foo, 0); // 0초 (실제는 4ms) 후에 foo 함수가 호출된다.
+bar();
+```
+
+1. 전역 코드가 평가되어 전역 실행 컨텍스트가 생성되고 콜 스택에 푸시됨
+2. 전역 코드가 실행되기 시작하여 setTimeout 함수가 호출 -> 이때 setTimeout 함수의 함수 실행 컨텍스트가 생성되고 콜스택에 푸시 -> 현재 실행 중인 실행 컨텍스트가 됨. (브라우저의 Web API(호스트 객체)인 타이머 함수도 함수이므로 함수 실행 컨텍스트를 생성)
+3. setTimeout 함수가 실행되면 콜백 함수를 호출 스케줄링하고 종료되어 콜 스택에서 팝된다.
+   (이때 호출 스케줄링, 즉 타이머 설정과 타이머가 만료되면 콜백 함수를 태스크 큐에 푸시하는 것은 브라우저의 역할 )
+4. 브라우저 수행하는 1.과 자바스크립트 엔진이 수행하는 2.는 병행 처리된다.
+5. 브라우저는 타이머를 설정하고 만료를 기다린다. -> 타이머 만료 후 콜백 함수 foo 가 태스크 큐에 푸시 -> 4ms (4ms 이하로 지정할 경우 정해지는 최소 지연 시간) 후에 콜백 함수 foo가 태스크 큐에 푸시되어 대기 (브라우저가 수행)
+
+   - setTimeout 함수로 호출 스케줄링한 콜백 함수는 정확히 지연 시간 후에 호출된다는 보장은 없음
+   - 지연 시간 이후에 콜백 함수가 태스크 큐에 푸시되어 대기하게 되지만 콜 스택이 비어야 호출되므로 약간의 시간차가 발생할 수 있음
+
+6. bar 함수가 호출되어 bar 함수의 함수 실행 컨텍스트가 생성 -> 콜스택에 푸시되어 현재 실행 중인 실행 컨텍스트가 됨 -> bar 함수가 종료되어 콜스택에서 팝
+
+   - 이때 브라우저가 타이머를 설정한 후 4ms가 경과했다면 foo 함수는 아직 태스크 큐에서 대기 중일 것임
+
+7. 전역 코드 실행이 종료되고 전역 실행 컨텍스트가 콜 스택에서 팝 -> 콜스택이 비게 됨
+8. 이벤트 루프에 의해 콜 스택이 비어 있음을 감지 -> 태스크 큐에서 대기 중인 콜백 함수 foo가 이벤트 루프에 의해 콜 스택에 푸시 -> 콜백 함수 foo의 함수 실행 컨텍스트가 생성되고 콜 스택에 푸시 되어 현재 실행 중인 실행 컨텍스트가 됨 -> foo 함수가 종료되어 콜스택에서 팝
+
+- 비동기 함수인 setTimeout 의 콜백함수는 태스크 큐에 푸시되어 대기하다가 콜 스택이 비게 되면 비로소 콜스택에 푸시되어 실행
+- 싱글 스레드 방식으로 동작하는 것은 브라우저가 아니라 브라우저에 내장된 자바스크립트 엔진이라는 것
+- 자바스크립트 엔진은 싱글 스레드로 동작하지만 브라우저는 멀티 스레드로 동작한다.
+- 싱글 스레드 방식만으로는 비동기로 동작할 수 없다.
+- 브라우저는 자바스크립트 엔진 외에도 렌더링 엔진과 Web API를 제공한다.
+- Web API는 ECMAScript 사양에 정의된 함수가 아니라 브라우저에서 제공하는 API이며, DOM API와 타이머 함수, HTTP 요청(Ajax)과 같은 비동기 처리를 포함한다.
+
+- 브라우저의 Web API인 setTimeout 함수가 호출되면 자바스크립트 엔진의 콜 스택에 푸시되어 실행
+- 하지만 setTimeout 함수의 두 가지 기능인 타이머 설정과 타이머가 만료하면 콜백 함수를 태스크 큐에 등록하는 처리는 자바스크립트 엔진이 아니라 브라우저가 실행한다.
+- 브라우저가 수행하는 4-1과 자바스크립트 엔진이 수행하는 4-2는 병행 처리된다.
+- 이처럼 브라우저와 자바스크립트 엔진이 협력하여 비동기 함수인 setTimeout 함수를 실행하는 것이다!
+
+- **자바스크립트 엔진은 싱글 스레드인데 어떻게 병렬처리 같은 비동기를 수행하나 했더니 브라우저가 멀티 스레드였던 것이다.**
+
+# Figma
+
+- 콘스트레인트
+  - 콘스트레인트는 어떤 오브젝트의 위칫값을 상하좌우에 ‘강제’로 고정하는 기능
+- 컴포넌트
+  - 피그마의 모든 요소는 재사용 가능한 컴포넌트로 만들 수 있고 변형이 가능하다.
+- 오토레이아웃
+  - 디자인 에셋의 레이아웃을 자동으로 조절하여 정렬을 도와주는 기능
+
+# 이벤트 루프는 무엇인가?
+
+https://www.youtube.com/watch?v=8aGhZQkoFbQ
