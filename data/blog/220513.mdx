@@ -55,7 +55,7 @@ layout: PostLayout
 ## Review Last day Lecture
 
 - Like 를 하는 것
-  - photo component 를 만들어서 Home 에서 photo 배열 data를 가져와서 map으로 돌리며 prop들을 날림 {…photo!}
+  - photo component 를 만들어서 Home 에서 photo 배열 data를 가져와서 map으로 돌리며 prop들을 날림 `{…photo!}`
   - mutation을 codegen 으로 생성해서 photo action 에 이벤트 핸들러로 등록함
   - onClick 이벤트 등록시 mutation 함수를 익명 콜백함수로 정의해야 타입 에러가 발생하지 않음
 - Refetching Queryies
@@ -63,7 +63,7 @@ layout: PostLayout
   - update 는 백엔드에서 받은 데이터를 주고 apollo cache에 직접 link 해주는 funtion
   - cache.modify : GraphQL을 사용하지 않고 캐시된 데이터를 조작할 수 있음
     - 정의해둔 필드에 연결된 컴포넌트들은 update가 동작하면 즉시 re-rendering 된다!
-- Comment 1
+- Comment
   - Photo type에 comments 와 commentsCount 를 정의하여 Comment 표시를 준비한다.
   - 백엔드에 Photo resolvers 에서 comments를 가져올 때 user가 include 된 상태로 가져온다.
   - Comment Component 의 prop type을 정의해줌
