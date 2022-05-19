@@ -1,6 +1,6 @@
 ---
-title: 220518 Today I Learned
-date: "2022-05-18"
+title: 220519 Today I Learned
+date: "2022-05-19"
 tags:
   [
     "daily",
@@ -19,3 +19,128 @@ summary:
 images: []
 layout: PostLayout
 ---
+
+<br />
+
+# Today Plan
+
+- [x] DeepDive # finish
+- [x] Newpresoo HBR Reading 2 chapter
+- [x] Speak 2 chapter
+- [ ] InstaClone 15.5 ~
+
+<br />
+
+# DeepDive JS Finish 🚀
+
+[INDEX](https://github.com/geonya/books/blob/master/deepdive-javascript/README.md)
+
+<br /># InstaClone{" "}
+
+## 15.5 FlatList
+
+- 리액트 네이티브에 스크롤뷰 ScrollView 는 긴 리스트를 처리할 때 성능이 좋지 않다
+- FlatList 는 Lazy Loading 이라는 유용한 기능을 가지고 있음
+- 리스트에 있는 모든 컴포넌트들을 한 번에 불러오는 게 아니라 화면에 보이는 것만 순차적으로 불러오는 것임
+- FlatList 에 renderItem 을 함수로 분리해서 작성할 때 item 인자의 타입을 어떻게 정해줘야 하나 고민 했는데 답을 못찾았다.
+- seeFeedQuery 내에 seeFeed 배열 타입의 요소 타입만 가져오면 되는데 방법을 모르겠음
+
+## 15.6 Photo 1
+
+- PhotoList 컴포넌트를 만들어 renderItem 이 Photo List 를 리턴하도록 한다.
+- Photo 데이터들을 컴포넌트로 전달할 수 있도록 interface를 작성한다. (seeFeed 배열에서 꺼내오면 되는데… 방법을 몰라 어쩔 수 없이 scheme type 을 긁어왔다.)
+- PhotoList 컴포넌트의 레이아웃을 잡아준다.
+
+```js
+const { width, height } = useWindowDimensions();
+```
+
+- useWindowDimensions 은 해당 미디어 스크린 화면의 사이즈를 가져온다.
+
+## 15.7 Photo 2
+
+- Photo List 컴포넌트에 Header 부분을 모두 TouchableOpacity 로 설정하고 onPress 이벤트 핸들러로 navigation.navigate 를 등록했다.
+
+```js
+<Header onPress={() => navigation.navigate("Profile")}>
+```
+
+- 문제는 navigation 에 navigate 인자 "Profile" 타입이 검증이 안된다는 것...
+
+```tsx
+const navigation: NativeStackNavigationProp<
+	StackNavFactoryParamList,
+	"Feed",
+	undefined
+> = useNavigation();
+```
+
+- 이렇게 Navigation prop을 타입을 적용하면 해결된다.
+
+```js
+useEffect(() => {
+	Image.getSize(file, (imageWidth, imageHeight) => {
+		if (imageHeight > screenHeight) {
+			setImageHeight(imageHeight / 3);
+		} else {
+			setImageHeight(screenHeight - 450);
+		}
+	});
+}, [file]);
+```
+
+- 크기가 작은 사진들은 /3 할 경우 너무 잘려보여서 사이즈마다 크기 적용을 달리하도록 하였다.
+- Action 에 Likes 와 Comments 를 만들어준다.
+- IonIcons 를 적용한다.
+- onPress 로 해당 스크린으로 이동하도록 한다. (Stack Navigator 에 등록하는 것 잊지 말기!)
+
+## 15.9 Pull to Refresh
+
+- 화면 아래로 땡겨서 새로고침 하기
+- FlatList 에 refreshing 과 onFresh prop을 이용한다.
+- refreshing 은 View가 active refresh(로딩 표시)를 표시해야 하는지 여부로 boolean 값을 받는다.
+- onRefresh 는 View가 refresh를 시작할 때 호출되는 함수이다.
+- onRefresh 에 useQuery 의 refetch 함수를 넣어 data를 다시 불러오도록 한다.
+- (refetch 는 query 를 다시 불러오는 function 이다.)
+- useState 를 이용해 loading state를 만들어서 refresh 를 async await 으로 refetch 함수를 동기처리 하며 setState 한다.
+
+## 15.10 Infinite Scrolling part One
+
+- onEndReached : 스크롤 끝까지 갔을 때 작동하는 함수
+- onEndReachedThreshold : onEndReached 언제 작동할 것인지 스크롤 끝에서 작동 지점까지의 거리를 지정해줌
+- fetchMore : fetch 를 추가로 계속 해나갈 때 사용함
+
+## 15.11 Infinite Scrolling part Two
+
+- fetchMore 를 제대로 사용하기 위해선 추가된 데이터를 cache에 반영해야함
+
+```tsx
+const client = new ApolloClient({
+	link: authLink.concat(httpLink),
+	cache: new InMemoryCache({
+		typePolicies: {
+			Query: {
+				fields: {
+					seeFeed: {
+						keyArgs: false,
+						merge: (existing = [], incoming = []) => [...existing, ...incoming],
+					},
+				},
+			},
+		},
+	}),
+});
+```
+
+- `keyArgs: false,` // apollo가 query 들을 argument 에 따라 구별시키는 것을 막아준다
+- `merge: (existing = [], incoming = []) => [...existing, ...incoming],` // 기존 데이터와 fetchMore 에서 가져온 데이터를 합친다. 그래야 자연스럽게 스크롤링이 가능하다.
+
+```tsx
+Query: {
+				fields: {
+					seeFeed: offsetLimitPagination(),
+				},
+			},
+```
+
+- 위 코드는 offsetLimitPagination 함수를 이용해 이렇게 깔끔하게 정리할 수 있다. (동일한 기능)
